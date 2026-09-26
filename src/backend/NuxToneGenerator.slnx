@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="NuxToneGenerator.Api/NuxToneGenerator.Api.csproj" />
+  <Project Path="NuxToneGenerator.Core/NuxToneGenerator.Core.csproj" />
+  <Project Path="NuxToneGenerator.Infrastructure/NuxToneGenerator.Infrastructure.csproj" />
+  <Project Path="NuxToneGenerator.Tests/NuxToneGenerator.Tests.csproj" />
+</Solution>

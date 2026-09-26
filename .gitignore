@@ -1,0 +1,48 @@
+# Operating system files
+.DS_Store
+Library/
+.AppleDouble
+.LSOverride
+
+# Local secrets and environment overrides
+.env
+.env.*
+!.env.example
+secrets.json
+appsettings.Local.json
+
+# .NET build output and local tooling
+[Bb]in/
+[Oo]bj/
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+TestResults/
+
+# Local application data
+src/backend/**/data/*
+
+# Node/Vite dependencies and build output
+node_modules/
+dist/
+.vite/
+*.tsbuildinfo
+
+# IDE settings
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+
+# Coverage and logs
+coverage/
+*.log
+
+# Python local files
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
