@@ -1,6 +1,8 @@
 namespace NuxToneGenerator.Tests;
 
 using NuxToneGenerator.Infrastructure.Services;
+using System;
+using System.Buffers.Binary;
 using System.IO;
 using System.Linq;
 
@@ -125,6 +127,48 @@ public class RealPatchFileTests
     }
 
     [SkippableFact]
+    public void RealFile_VerifiesSceneAndCabinetBoundaries()
+    {
+        var data = TryLoadPatchFile();
+        Skip.If(data == null, "Reference patch file not found");
+
+        const int presetSize = 9902;
+        const int sceneSize = 142;
+        const int sceneNameOffset = 106;
+        const int cabinetOffset = 430;
+        const int cabinetNameOffset = 434;
+
+        Assert.Equal(128 * presetSize, data!.Length);
+        Assert.Equal(0, BinaryPrimitives.ReadInt32LittleEndian(data.AsSpan(0, 4)));
+        Assert.Equal("Ac30 + SteelSing", ReadAscii(data, 4 + sceneNameOffset, 16));
+        Assert.Equal("Ac30 + SteelSing", ReadAscii(data, sceneSize + 4 + sceneNameOffset, 16));
+        Assert.Equal("Ac30 + SteelSing", ReadAscii(data, 2 * sceneSize + 4 + sceneNameOffset, 16));
+        Assert.Equal("ML-MEGA-GREEN-MIX-CL", ReadAscii(data, cabinetNameOffset, 32));
+        Assert.Equal(new byte[] { 1, 0, 0, 0 }, data.Skip(cabinetOffset).Take(4));
+    }
+
+    [SkippableFact]
+    public void RealFile_VerifiesSignalChainAndRiffBoundaries()
+    {
+        var data = TryLoadPatchFile();
+        Skip.If(data == null, "Reference patch file not found");
+
+        const int presetSize = 9902;
+        const int sceneStart = 4;
+        const int sceneSize = 142;
+        const int chainOffset = 94;
+        const int riffOffset = 466;
+        var expectedChain = new byte[] { 5, 0, 1, 2, 3, 9, 4, 10, 6, 8, 7, 11 };
+        Assert.Equal(expectedChain, data!.Skip(sceneStart + chainOffset).Take(expectedChain.Length));
+        Assert.Equal("RIFF", System.Text.Encoding.ASCII.GetString(data, riffOffset, 4));
+        Assert.Equal(8228, BinaryPrimitives.ReadInt32LittleEndian(data.AsSpan(riffOffset + 4, 4)));
+        Assert.Equal("RIFF", System.Text.Encoding.ASCII.GetString(data, presetSize + riffOffset, 4));
+        Assert.Equal(0, data[presetSize + sceneStart + 3 * sceneSize - 1]);
+        Assert.Equal(presetSize, data.Length / 128);
+        Assert.Equal(0, data.Length % presetSize);
+    }
+
+    [SkippableFact]
     public void RealFile_RoundTripPreservesData()
     {
         var data = TryLoadPatchFile();
@@ -142,5 +186,10 @@ public class RealPatchFileTests
         // IR data should be preserved exactly
         Assert.Equal(original.ImpulseResponseData, deserialized.ImpulseResponseData);
         Assert.Equal(original.FrequencyResponseData, deserialized.FrequencyResponseData);
+    }
+
+    private static string ReadAscii(byte[] data, int offset, int length)
+    {
+        return System.Text.Encoding.ASCII.GetString(data, offset, length).TrimEnd('\0');
     }
 }
